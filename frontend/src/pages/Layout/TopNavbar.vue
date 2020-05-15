@@ -15,44 +15,15 @@
           <span class="icon-bar"></span>
         </md-button>
 
-        <div class="md-collapse">
+        <div class="md-collapse">  
           <div class="md-autocomplete">
-            <md-autocomplete
-              class="search"
-              v-model="selectedSearch"
-              :md-options="resentSearches"
-            >
-              <label>Buscar...</label>
-            </md-autocomplete>
-          </div>
+            <h4>Hola, {{name}}</h4>
+          </div>        
           <md-list>
-            <md-list-item to="/app/dashboard">
+            <md-list-item to="/app/dashboard" v-if="permisos == 'true'">
               <i class="material-icons">dashboard</i>
               <p class="hidden-lg hidden-md">Dashboard</p>
             </md-list-item>
-
-            <li class="md-list-item">
-              <a href="#/notifications" class="md-list-item-router md-list-item-container md-button-clean dropdown">
-                <div class="md-list-item-content">
-                  <drop-down>
-                    <md-button
-                      slot="title"
-                      class="md-button md-just-icon md-simple"
-                      data-toggle="dropdown"
-                    >
-                      <md-icon>notifications</md-icon>
-                      <span class="notification" v-if="totalNotifications > 0">{{ totalNotifications }}</span>
-                      <p class="hidden-lg hidden-md">Notifications</p>
-                    </md-button>
-                    <ul class="dropdown-menu dropdown-menu-right">
-                      <li v-for="notification in notifications" :key="notification">
-                        <a href="#">{{ notification}}</a>
-                      </li>
-                    </ul>
-                  </drop-down>
-                </div>
-              </a>
-            </li>
 
             <li class="md-list-item">
                <a href="#/notifications" class="md-list-item-router md-list-item-container md-button-clean dropdown">
@@ -68,7 +39,7 @@
                       </md-button>
                       <ul class="dropdown-menu dropdown-menu-right">
                         <li>
-                          <a>Salir</a>
+                          <a @click="logout">Salir</a>
                         </li>
                       </ul>
                     </drop-down>
@@ -87,7 +58,9 @@ export default {
   data() {
     return {
       selectedSearch: null,
-      resentSearches: []
+      resentSearches: [],
+      permisos:'',
+      name:''
     };
   },
   computed:{
@@ -101,7 +74,16 @@ export default {
   methods: {
     toggleSidebar() {
       this.$sidebar.displaySidebar(!this.$sidebar.showSidebar);
-    }
+    },
+    logout(){
+      this.$store.dispatch('destroyToken')
+      .then(response => 
+      this.$router.go('/login'))
+    } 
+  },
+  mounted(){
+    this.permisos = localStorage.getItem('user')
+    this.name = localStorage.getItem('name')
   }
 };
 </script>

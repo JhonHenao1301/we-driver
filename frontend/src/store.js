@@ -11,7 +11,8 @@ Vue.use(Vuex);
 export const store = new Vuex.Store({
     state:{
         userPermision:false,
-       
+        userCanAdd: false,
+        userName: '',
         //Token de acceso
         token : null || localStorage.getItem('token'),
         routeAPI : "http://we-drive-api.herokuapp.com/",
@@ -28,10 +29,6 @@ export const store = new Vuex.Store({
         // usuarios de wedrive
         usuarios: [],
         //dashboard data
-        totalUsers: 623230,
-        totalCameras: 45,
-        totalGasStation: 78,
-        avgGas: 8400,
         usersRegisterdata: {
             data: {
               labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio"],
@@ -221,6 +218,26 @@ export const store = new Vuex.Store({
         },
         getStationsNoAproved(state){
           return state.stations.filter(station => !station.item_aprobado)
+        },
+        getTotalUsers(state){
+          return state.usuarios.length;
+        },
+        getTotalStation(state, getters){
+          return getters.getStationsAproved.length
+        },
+        getTotalCameras(state, getters){
+          return getters.getCamerasAproved.length
+        },
+        getAvgGas(state){
+          var total = 0
+          var aprobadas = 0
+          state.stations.forEach(station => {
+            if(station.precio_galon_corriente > 0){
+              total =+ station.precio_galon_corriente
+              aprobadas++
+            }
+          });
+          return total/aprobadas
         }
     },
     mutations:{
@@ -253,8 +270,9 @@ export const store = new Vuex.Store({
           state.token = token;
         },
         //permisos
-        setUserPermision(state,value){
-          state.userPermision = value
+        setUserPermision(state,admin,canAdd){
+          state.userPermision = admin,
+          state.userCanAdd = canAdd
         },
         setZoomMap(state, zoom){
           state.googleMapSetting.zoom = zoom;
@@ -348,11 +366,11 @@ export const store = new Vuex.Store({
               password: credentials.password });
               const token = response.data.token
               console.log("[Debug] la respuesta del login:", response.data.user)
-              context.commit('setUserPermission',response.data.user.is_superuser)
+              context.commit('setUserPermission',response.data.user.is_superuser,response.data.user.is_staff)
               localStorage.setItem('token',token)
               localStorage.setItem('user',response.data.user.is_superuser)
-              
-            
+              localStorage.setItem('canAdd',response.data.user.is_staff)
+              localStorage.setItem('name',response.data.user.first_name)
           }catch(error){
             if (error.response.status == 400) {
               alert("Credenciales incorrectas, intenta de nuevo");
@@ -367,6 +385,8 @@ export const store = new Vuex.Store({
           if(context.getters.loggedIn){
             localStorage.removeItem('token')
             localStorage.removeItem('user')
+            localStorage.removeItem('canAdd')
+            localStorage.removeItem('name')
             context.commit('destroyToken') 
           }
         } 
